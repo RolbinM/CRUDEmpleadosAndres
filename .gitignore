@@ -1,0 +1,58 @@
+# Ignore build results
+bin/
+obj/
+out/
+
+# Ignore NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+
+# Ignore logs, database, and other runtime files
+*.log
+*.db
+*.mdf
+*.ldf
+
+# Ignore Visual Studio/IDE specific files
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore Rider/JetBrains specific files
+.idea/
+.idea_modules/
+.idea/.idea/
+
+# Ignore ASP.NET temporary files
+App_Data/
+AppFiles/
+
+# Ignore configuration files
+appsettings*.json
+
+# Ignore publish output
+publish/
+wwwroot/
+
+# Ignore temporary and cache files
+node_modules/
+dist/
+.env
+.env.*
+
+# Ignore coverage files
+coverage/
+
+# Ignore any lock files
+project.lock.json
+yarn.lock
+package-lock.json
+
+# Ignore test results
+TestResults/
+*.trx
+*.coverage
