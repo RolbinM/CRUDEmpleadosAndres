@@ -171,7 +171,7 @@ END
 
 -- DROP PROCEDURE IF EXISTS CargarXML;
 
-EXEC CargarXML @outResultCode=50008, @inRutaXML='C:\Proyectos\CRUDEmpleadosAndres\Base Datos\Scripts\Datos.xml';
+-- EXEC CargarXML @outResultCode=50008, @inRutaXML='C:\Proyectos\CRUDEmpleadosAndres\Base Datos\Scripts\Datos.xml';
 
 -- La consulta a Movimiento debe siempre hacerse con: ORDER BY PostTime ASC
 -- SELECT * FROM [dbo].[Movimiento] ORDER BY PostTime ASC
