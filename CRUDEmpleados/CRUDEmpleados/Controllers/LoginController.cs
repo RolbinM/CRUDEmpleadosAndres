@@ -64,7 +64,7 @@ namespace CRUDEmpleados.Controllers
             else if (usuario == 50003)
             {
 
-                TempData["Error"] = "El login esta deshabilitado.";
+                TempData["Error"] = "El login esta deshabilitado, debe esperar 10 min a que se habilite.";
 
                 return View();
             }
