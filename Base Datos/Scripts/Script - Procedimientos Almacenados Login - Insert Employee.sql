@@ -1,4 +1,113 @@
+DROP PROCEDURE SP_AumentarIntentosFallidos
+CREATE PROCEDURE SP_AumentarIntentosFallidos
+(
+	@username NVARCHAR(50),
+	@lastTimeLogin DATETIME
+)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	BEGIN TRY;
+
+	DECLARE @failedAttempts INT
+	
+	SET @failedAttempts = (SELECT failedAttempts from Usuario where Username = @username) + 1
+
+	IF @lastTimeLogin IS NOT NULL
+	BEGIN
+		IF @failedAttempts >= 5 AND DATEDIFF(MINUTE, @lastTimeLogin, GETDATE()) < 30
+		BEGIN
+			BEGIN TRANSACTION validate_attempt
+			UPDATE Usuario
+				SET userBlocked = 1
+            WHERE Username = @username;
+			COMMIT TRANSACTION validate_attempt
+			RETURN
+		END
+	END
+
+	BEGIN TRANSACTION validate_attempt
+		UPDATE Usuario
+            SET failedAttempts = failedAttempts + 1,
+			lastTimeLogin = GETDATE()
+            WHERE Username = @username;
+	COMMIT TRANSACTION validate_attempt
+
+	END TRY
+
+	BEGIN CATCH
+		IF @@TRANCOUNT > 0
+		BEGIN
+			ROLLBACK TRANSACTION validate_attempt;
+		END
+		INSERT INTO [dbo].[DBError] VALUES (
+			  SUSER_NAME()
+			, ERROR_NUMBER()
+			, ERROR_STATE()
+			, ERROR_SEVERITY()
+			, ERROR_LINE()
+			, ERROR_PROCEDURE()
+			, ERROR_MESSAGE()
+			, GETDATE()
+			);
+	END CATCH
+	SET NOCOUNT OFF;
+END
+
+CREATE PROCEDURE SP_Desbloquear_Usuario
+(
+	@username NVARCHAR(50)
+)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	BEGIN TRY;
+
+		BEGIN TRANSACTION unlock_user
+			UPDATE Usuario
+					SET failedAttempts = 0,
+					lastTimeLogin = GETDATE(),
+					userBlocked = 0
+					WHERE Username = @username;
+			COMMIT TRANSACTION unlock_user
+			RETURN
+
+	END TRY
+
+	BEGIN CATCH
+		IF @@TRANCOUNT > 0
+		BEGIN
+			ROLLBACK TRANSACTION unlock_user;
+		END
+		INSERT INTO [dbo].[DBError] VALUES (
+			  SUSER_NAME()
+			, ERROR_NUMBER()
+			, ERROR_STATE()
+			, ERROR_SEVERITY()
+			, ERROR_LINE()
+			, ERROR_PROCEDURE()
+			, ERROR_MESSAGE()
+			, GETDATE()
+			);
+	END CATCH
+	SET NOCOUNT OFF;
+END
+
+select * from Usuario
+DECLARE @resultado INT;
+
+EXEC SP_Login 
+    @username = 'Rolbin', 
+    @password = 'password1', 
+    @outResultCode = @resultado OUTPUT;
+
+-- Imprimir el resultado del código de salida
+PRINT @resultado;
+select * from Usuario
+
+select DATEDIFF(MINUTE, (select lastTimeLogin from Usuario where Username = 'Rolbin'), GETDATE()) 
 -- Procedimiento almacenado Login
+DROP PROCEDURE SP_Login
 CREATE PROCEDURE SP_Login
 (
 	@username NVARCHAR(50),
@@ -9,25 +118,53 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 	BEGIN TRY
-		SET @outResultCode = 1;
-		BEGIN TRANSACTION validate_user;
-		IF EXISTS (SELECT 1
-               FROM [dbo].[Usuario] 
-               WHERE Username = @username
-               AND Password = @password)
+		IF NOT EXISTS (SELECT 1 FROM [dbo].[Usuario] WHERE Username = @username)
 		BEGIN
-        -- Si el usuario y contraseña coinciden, retorna 0
-			SET @outResultCode = 0;
+			SET @outResultCode = 50001; --Usuario no existe
+			SELECT @outResultCode AS outResultCode;
+			RETURN
+
 		END
 
-		COMMIT TRANSACTION validate_user;
+		DECLARE @userBlocked BIT
+		DECLARE @lastTimeLogin DATETIME
+		SET @userBlocked = (SELECT userBlocked from Usuario where Username = @username)
+		SET @lastTimeLogin = (SELECT lastTimeLogin from Usuario where Username = @username)
+
+		IF @userBlocked = 1 AND (DATEDIFF(MINUTE, @lastTimeLogin, GETDATE())) >= 1
+		BEGIN
+			exec SP_Desbloquear_Usuario @username
+			set @userBlocked = (SELECT userBlocked from Usuario where Username = @username)
+		END
+
+		IF @userBlocked = 1
+		BEGIN
+			SET @outResultCode = 50003; --User blocked
+			SELECT @outResultCode AS outResultCode;
+			RETURN
+		END
+
+		IF NOT EXISTS (SELECT 1 FROM [dbo].[Usuario] WHERE Password = @password and Username = @username)
+		BEGIN
+			SET @outResultCode = 50002; --Password no existe
+			exec SP_AumentarIntentosFallidos @username = @username, @lastTimeLogin = @lastTimeLogin
+			SELECT @outResultCode AS outResultCode;
+			RETURN
+
+		END
+
+        -- Si el usuario y contraseña coinciden, retorna 0
+		SET @outResultCode = 0;
+		exec SP_Desbloquear_Usuario @username
 		SELECT @outResultCode AS outResultCode;
+		RETURN
 	END TRY
 
 	BEGIN CATCH
 		IF @@TRANCOUNT > 0
 		BEGIN
 			ROLLBACK TRANSACTION validate_user;
+			ROLLBACK TRANSACTION validate_unlock_user;
 		END
 		SET @outResultCode = 50008; -- Error en base de datos
 		INSERT INTO [dbo].[DBError] VALUES (
