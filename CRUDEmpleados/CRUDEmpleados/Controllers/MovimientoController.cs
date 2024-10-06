@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using CapaObjetos.Objetos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRUDEmpleados.Controllers
@@ -11,8 +12,23 @@ namespace CRUDEmpleados.Controllers
         {
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string empleado)
         {
+            List<clMovimiento> lista = dbMovimiento.obtenerMovimientos(conexionString, empleado);
+
+            ViewBag.empleado = empleado;
+
+            return View(lista);
+        }
+
+
+        [HttpGet]
+        public IActionResult Insertar()
+        {
+            List<clPuesto> puestos = dbPuesto.obtenerPuesto(conexionString);
+
+            ViewBag.Puestos = puestos;
+
             return View();
         }
     }

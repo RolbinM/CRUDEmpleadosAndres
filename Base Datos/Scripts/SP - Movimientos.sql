@@ -1,6 +1,6 @@
 CREATE OR ALTER PROCEDURE listadoMovimientos
 (
-	@inValorDocIdentidad NVARCHAR(50) = NULL
+	@inValorDocIdentidad NVARCHAR(50)
 	, @outResultCode INT OUTPUT
 )
 AS
@@ -24,10 +24,10 @@ BEGIN
 			, [PostInIP]
 			, [PostTime]
 		  FROM [dbo].[Movimiento]
-		  INNER JOIN Empleado E ON @inValorDocIdentidad = E.ValorDocumentoIdentidad
+		  INNER JOIN Empleado E ON idEmpleado = E.id
 		  INNER JOIN TipoMovimiento T ON idTipoMovimiento = T.id
 		  INNER JOIN Usuario U ON idPostByUser = U.id
-		  WHERE idEmpleado = E.id
+		  WHERE @inValorDocIdentidad = E.ValorDocumentoIdentidad
 		  ORDER BY PostTime DESC;
 
 
@@ -58,8 +58,9 @@ END
 
 /*
 
-SELECT * FROM Empleado;
+SELECT * FROM Empleado where valordocumentoidentidad = '123465';
 
-EXEC listadoMovimientos @inValorDocIdentidad='6993943', @outResultCode=50008;
+
+EXEC listadoMovimientos @inValorDocIdentidad='123465', @outResultCode=50008;
 
 */

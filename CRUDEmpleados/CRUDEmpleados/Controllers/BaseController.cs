@@ -20,6 +20,7 @@ namespace CRUDEmpleados.Controllers
         public dbLogin dbLogin = new dbLogin();
         public dbEmpleado dbEmpleado = new dbEmpleado();
         public dbPuesto dbPuesto = new dbPuesto();
+        public dbMovimiento dbMovimiento = new dbMovimiento();
         
 
         public BaseController(IHttpContextAccessor _contextAccessor, IConfiguration _configuration)
