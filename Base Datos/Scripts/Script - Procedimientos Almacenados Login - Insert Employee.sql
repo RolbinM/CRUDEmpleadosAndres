@@ -139,3 +139,109 @@ END
 
 -- Revisar el resultado
 --PRINT @resultado; 
+
+
+--Procedimiento almacenado Update Employee
+DROP PROCEDURE SP_Update_Employee
+CREATE PROCEDURE SP_Update_Employee
+(
+    @cedula NVARCHAR(50) = NULL, -- Opcional, si no se pasa se mantiene el valor actual
+	@cedula_updated NVARCHAR(50) = NULL, -- Opcional, si no se pasa se mantiene el valor actual
+    @name_updated NVARCHAR(100) = NULL, -- Opcional, si no se pasa se mantiene el valor actual
+    @nombrePuesto_updated NVARCHAR(100) = NULL, -- Opcional, si no se pasa se mantiene el valor actual
+	@isActive BIT = NULL,
+    @outResultCode INT OUTPUT -- Parámetro de salida para el estado del request
+)
+AS
+BEGIN
+    -- Inicializamos el estado con un valor que indique que no se ha completado
+    SET @outResultCode = 1; -- Por defecto: No se realizaron cambios
+
+    -- Iniciamos una transacción
+
+    BEGIN TRY
+		DECLARE @idEmpleado INT
+		SET @idEmpleado = (SELECT id FROM Empleado WHERE ValorDocumentoIdentidad = @cedula)
+        -- Verificamos que el empleado exista
+        IF  @idEmpleado IS NULL
+        BEGIN
+            SET @outResultCode = 50002; -- Empleado no encontrado
+			SELECT @outResultCode AS outResultCode;
+            RETURN;
+        END
+
+		IF EXISTS (SELECT 1 FROM Empleado WHERE ValorDocumentoIdentidad = @cedula_updated)
+        BEGIN
+            SET @outResultCode = 50006; -- Cedula de identidad ya existe
+			SELECT @outResultCode AS outResultCode;
+            RETURN;
+        END
+
+		IF EXISTS (SELECT 1 FROM Empleado WHERE Nombre = @name_updated)
+        BEGIN
+            SET @outResultCode = 50007; -- Nombre ya existe
+			SELECT @outResultCode AS outResultCode;
+            RETURN;
+        END
+
+		DECLARE @idPuesto INT;
+		SELECT @idPuesto = id FROM [dbo].[Puesto] WHERE Nombre = @nombrePuesto_updated
+
+		IF @idPuesto IS NULL AND @nombrePuesto_updated IS NOT NULL
+			BEGIN
+				-- Código de error 500051 si no se encontró el puesto
+				SET @outResultCode = 500051;
+				SELECT @outResultCode AS outResultCode;
+				RETURN;
+			END
+
+        -- Actualizar solo si se proporciona al menos un campo
+        IF @cedula_updated IS NOT NULL OR @name_updated IS NOT NULL OR @idPuesto IS NOT NULL OR @isActive IS NOT NULL
+        BEGIN
+			BEGIN TRANSACTION update_employee;
+            UPDATE [dbo].[Empleado]
+            SET 
+                ValorDocumentoIdentidad = COALESCE(@cedula_updated, ValorDocumentoIdentidad), -- Si @cedula no es NULL, actualiza
+                Nombre = COALESCE(@name_updated, Nombre), -- Si @name no es NULL, actualiza
+                idPuesto = COALESCE(@idPuesto, idPuesto), -- Si @idPuesto no es NULL, actualiza
+				EsActivo = COALESCE(@isActive, EsActivo) 
+            WHERE id = @idEmpleado;
+
+            -- Si la actualización fue exitosa, retornamos éxito
+            SET @outResultCode = 0; -- Éxito
+			COMMIT TRANSACTION update_employee;
+        END
+        
+    END TRY
+    BEGIN CATCH
+		IF @@TRANCOUNT > 0
+		BEGIN
+			ROLLBACK TRANSACTION update_employee;
+		END
+		SET @outResultCode = 50008; -- Error en base de datos
+		INSERT INTO [dbo].[DBError] VALUES (
+			  SUSER_NAME()
+			, ERROR_NUMBER()
+			, ERROR_STATE()
+			, ERROR_SEVERITY()
+			, ERROR_LINE()
+			, ERROR_PROCEDURE()
+			, ERROR_MESSAGE()
+			, GETDATE()
+			);
+		SELECT @outResultCode AS outResultCode;
+	END CATCH
+	SET NOCOUNT OFF;
+END;
+
+--DECLARE @resultado INT;
+
+--EXEC SP_Update_Employee 
+--    @cedula = '1234567829', -- Cédula actual del empleado
+    --@cedula_updated = '1234567829', -- Nueva cédula, si deseas actualizarla
+    --@name_updated = 'Juan Gerardo', -- Nuevo nombre, si deseas actualizarlo
+--	@nombrePuesto_updated = 'ls', -- Nuevo puesto, si deseas actualizarlo
+--    @outResultCode = @resultado OUTPUT;
+
+-- Imprimir el código de resultado
+--PRINT @resultado;
