@@ -157,8 +157,6 @@ BEGIN
     -- Inicializamos el estado con un valor que indique que no se ha completado
     SET @outResultCode = 1; -- Por defecto: No se realizaron cambios
 
-    -- Iniciamos una transacción
-
     BEGIN TRY
 		DECLARE @idEmpleado INT
 		SET @idEmpleado = (SELECT id FROM Empleado WHERE ValorDocumentoIdentidad = @cedula)
@@ -244,4 +242,27 @@ END;
 --    @outResultCode = @resultado OUTPUT;
 
 -- Imprimir el código de resultado
+--PRINT @resultado;
+
+
+--Procedimiento almacenado Delete Employee
+CREATE PROCEDURE SP_Delete_Employee
+(
+    @cedulaDeleted NVARCHAR(50), 
+    @outResultCode INT OUTPUT -- Parámetro de salida para el estado del request
+)
+AS
+BEGIN
+	EXEC SP_Update_Employee 
+		@cedula = @cedulaDeleted,
+		@isActive = 0,
+		@outResultCode = @outResultCode OUTPUT;
+	SELECT @outResultCode
+END;
+
+
+--DECLARE @resultado INT;
+--EXEC SP_Delete_Employee 
+--    @cedulaDeleted = '987654321', 
+--    @outResultCode = @resultado OUTPUT;
 --PRINT @resultado;
