@@ -107,8 +107,8 @@ select * from Usuario
 
 select DATEDIFF(MINUTE, (select lastTimeLogin from Usuario where Username = 'Rolbin'), GETDATE()) 
 -- Procedimiento almacenado Login
-DROP PROCEDURE SP_Login
-CREATE PROCEDURE SP_Login
+
+CREATE OR ALTER PROCEDURE SP_Login
 (
 	@username NVARCHAR(50),
     @password NVARCHAR(50),
@@ -131,7 +131,7 @@ BEGIN
 		SET @userBlocked = (SELECT userBlocked from Usuario where Username = @username)
 		SET @lastTimeLogin = (SELECT lastTimeLogin from Usuario where Username = @username)
 
-		IF @userBlocked = 1 AND (DATEDIFF(MINUTE, @lastTimeLogin, GETDATE())) >= 1
+		IF @userBlocked = 1 AND (DATEDIFF(MINUTE, @lastTimeLogin, GETDATE())) >= 10
 		BEGIN
 			exec SP_Desbloquear_Usuario @username
 			set @userBlocked = (SELECT userBlocked from Usuario where Username = @username)
