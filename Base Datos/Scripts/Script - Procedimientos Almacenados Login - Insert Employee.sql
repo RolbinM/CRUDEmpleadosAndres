@@ -157,8 +157,6 @@ BEGIN
     -- Inicializamos el estado con un valor que indique que no se ha completado
     SET @outResultCode = 1; -- Por defecto: No se realizaron cambios
 
-    -- Iniciamos una transacción
-
     BEGIN TRY
 		DECLARE @idEmpleado INT
 		SET @idEmpleado = (SELECT id FROM Empleado WHERE ValorDocumentoIdentidad = @cedula)
@@ -244,4 +242,75 @@ END;
 --    @outResultCode = @resultado OUTPUT;
 
 -- Imprimir el código de resultado
+--PRINT @resultado;
+
+
+--Procedimiento almacenado Delete Employee
+CREATE PROCEDURE SP_Delete_Employee
+(
+    @cedulaDeleted NVARCHAR(50), 
+    @outResultCode INT OUTPUT -- Parámetro de salida para el estado del request
+)
+AS
+BEGIN
+	EXEC SP_Update_Employee 
+		@cedula = @cedulaDeleted,
+		@isActive = 0,
+		@outResultCode = @outResultCode OUTPUT;
+	SELECT @outResultCode
+END;
+
+
+--DECLARE @resultado INT;
+--EXEC SP_Delete_Employee 
+--    @cedulaDeleted = '987654321', 
+--    @outResultCode = @resultado OUTPUT;
+--PRINT @resultado;
+
+--Procedimiento almacenado consultar empleado
+CREATE PROCEDURE SP_Get_Employee
+(
+    @cedula NVARCHAR(50), -- Parámetro de entrada: Valor del documento de identidad (cédula)
+    @outResultCode INT OUTPUT -- Parámetro de salida para el estado del request
+)
+AS
+BEGIN
+    BEGIN TRY
+        -- Seleccionamos los detalles del empleado
+        SELECT 
+            e.ValorDocumentoIdentidad AS Cedula,
+            e.Nombre AS NombreEmpleado,
+            p.Nombre AS NombrePuesto,
+            e.SaldoVacaciones
+        FROM Empleado e
+        INNER JOIN Puesto p ON e.idPuesto = p.id
+        WHERE e.ValorDocumentoIdentidad = @cedula;
+
+        SET @outResultCode = 0; -- 0: Éxito
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+		BEGIN
+			ROLLBACK TRANSACTION update_employee;
+		END
+		SET @outResultCode = 50008; -- Error en base de datos
+		INSERT INTO [dbo].[DBError] VALUES (
+			  SUSER_NAME()
+			, ERROR_NUMBER()
+			, ERROR_STATE()
+			, ERROR_SEVERITY()
+			, ERROR_LINE()
+			, ERROR_PROCEDURE()
+			, ERROR_MESSAGE()
+			, GETDATE()
+			);
+		SELECT @outResultCode AS outResultCode;
+	END CATCH
+	SET NOCOUNT OFF;
+END;
+
+--DECLARE @resultado INT;
+--EXEC SP_Get_Employee 
+--    @cedula = '987654321', 
+--    @outResultCode = @resultado OUTPUT;
 --PRINT @resultado;
