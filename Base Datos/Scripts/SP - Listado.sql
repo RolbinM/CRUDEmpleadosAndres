@@ -14,17 +14,21 @@ BEGIN
 		SET @outResultCode = 0;
 
 		SELECT
-			  [id]
-			, [idPuesto]
-			, [ValorDocumentoIdentidad]
-			, [Nombre]
-			, [FechaContratacion]
-			, [SaldoVacaciones]
-			, [EsActivo]
-		  FROM [dbo].[Empleado]
+			  emp.[id]
+			, emp.[idPuesto]
+			, p.Nombre as NombrePuesto
+			, p.SalarioxHora as SalarioxHora
+			, emp.[ValorDocumentoIdentidad]
+			, emp.[Nombre]
+			, emp.[FechaContratacion]
+			, emp.[SaldoVacaciones]
+			, emp.[EsActivo]
+		  FROM [dbo].[Empleado] emp
+		  INNER JOIN [dbo].[Puesto] p
+		  on p.id = emp.idPuesto
 		  WHERE 
-            (@inValorDocIdentidad IS NULL OR [ValorDocumentoIdentidad] = @inValorDocIdentidad)
-            AND (@inNombre IS NULL OR [Nombre] LIKE '%' + @inNombre + '%');
+            (@inValorDocIdentidad IS NULL OR emp.ValorDocumentoIdentidad = @inValorDocIdentidad)
+            AND (@inNombre IS NULL OR emp.Nombre LIKE '%' + @inNombre + '%');
 
 
 		SELECT @outResultCode AS outResultCode;

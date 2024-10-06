@@ -1,60 +1,101 @@
-﻿using CRUDEmpleados.Models;
+﻿using CapaDatos.Data;
+using CapaObjetos.Objetos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRUDEmpleados.Controllers
 {
-    public class EmpleadoController : Controller
+    [Authorize]
+    public class EmpleadoController : BaseController
     {
-
-        [HttpGet]
-        public async Task<IActionResult> Lista()
+        public EmpleadoController(IHttpContextAccessor contextAccessor, IConfiguration configuration)
+       : base(contextAccessor, configuration)
         {
-            List<Empleado> lista = await _appDBContext.Empleados.ToListAsync();
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            string usuario = User.Identity.Name;
+
+            List<clEmpleado> lista = dbEmpleado.obtenerEmpleados(conexionString);
 
             return View(lista);
         }
 
-
         [HttpGet]
-        public IActionResult Nuevo()
+        public IActionResult Insertar()
         {
+            // Ejemplo de una lista de puestos
+            List<clPuesto> puestos = dbPuesto.obtenerPuesto(conexionString);
+
+            ViewBag.Puestos = puestos;
+
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Nuevo(Empleado empleado)
+        public async Task<int> Insertar([FromBody] clEmpleado inEmpleado)
         {
-           
+            int resultCode = -1;
 
-            return RedirectToAction(nameof(Lista));
+            try
+            {
+                string usuario = User.Identity.Name;
+
+                
+
+                return 1;
+            }
+            catch (Exception ex)
+            {
+                return -1;
+            }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Editar(int Id)
-        {
-            Empleado empleado = await _appDBContext.Empleados.FirstAsync(e => e.IdEmpleado == Id);
+        //[HttpGet]
+        //public async Task<IActionResult> Editar(string inEmpleado)
+        //{
+        //    string usuario = User.Identity.Name;
 
-            return View(empleado);
-        }
+        //    //cl cuenta = await personalHubDBContext.Cuenta.FirstAsync(e => (e.Usuario == usuario && e.Cuenta == inCuenta));
 
-        [HttpPost]
-        public async Task<IActionResult> Editar(Empleado empleado)
-        {
-            _appDBContext.Empleados.Update(empleado);
-            await _appDBContext.SaveChangesAsync();
+        //    return View(cuenta);
+        //}
 
-            return RedirectToAction(nameof(Lista));
-        }
+        //[HttpPost]
+        //public async Task<int> Editar([FromBody] clEmpleado inEmpleado)
+        //{
+        //    try
+        //    {
+        //        string usuario = User.Identity.Name;
+        //        cuenta.UpdatedDate = DateTime.Now;
 
 
-        [HttpGet]
-        public async Task<IActionResult> Eliminar(int Id)
-        {
-            Empleado empleado = await _appDBContext.Empleados.FirstAsync(e => e.IdEmpleado == Id);
-            _appDBContext.Empleados.Remove(empleado);
-            await _appDBContext.SaveChangesAsync();
+        //        return 1;
 
-            return RedirectToAction(nameof(Lista));
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return -1;
+        //    }
+        //}
+
+        //[HttpPost]
+        //public async Task<int> Eliminar([FromBody] clEmpleado inEmpleado)
+        //{
+        //    try
+        //    {
+        //        string usuario = User.Identity.Name;
+
+
+
+        //        return 1;
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return -1;
+        //    }
+        //}
     }
 }

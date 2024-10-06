@@ -1,0 +1,175 @@
+﻿@model List<CapaObjetos.Objetos.clEmpleado>;
+
+<div class="row align-items-center">
+    <div class="col-md-9">
+        <h3>Empleados</h3>
+    </div>
+    <div class="col-md-3 text-right">
+        <button id="btnModalNuevo" class="btn btn-primary w-100">Agregar Empleado</button>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <table id="empleadosTable" class="table table-bordered">
+        <thead>
+            <tr>
+                <th hidden>Id</th>
+                <th hidden>Id Puesto</th>
+                <th>Documento de Identidad</th>
+                <th>Nombre</th>
+                <th>Puesto</th>
+                <th>Fecha de Contratación</th>
+                <th>Saldo de Vacaciones</th>
+                <th>Es Activo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var empleado in Model)
+            {
+                <tr>
+                    <td hidden>@empleado.Id</td>
+                    <td hidden>@empleado.IdPuesto</td>
+                    <td>@empleado.ValorDocumentoIdentidad</td>
+                    <td>@empleado.Nombre</td>
+                    <td>@empleado.NombrePuesto</td>
+                    <td>@empleado.FechaContratacion.ToString("dd/MM/yyyy")</td>
+                    <td>@empleado.SaldoVacaciones</td>
+                    <td>@(empleado.EsActivo ? "Sí" : "No")</td>
+                    <td>
+                        <a onclick="editarRegistro('@empleado.Id')" class="btn btn-warning">Editar</a>
+                        <a onclick="eliminarRegistro('@empleado.Id')" class="btn btn-danger">Eliminar</a>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div id="contenedorNuevo">
+</div>
+
+<div id="contenedorEditar">
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        $('#empleadosTable').DataTable({
+            paging: true,        
+            searching: true,    
+            ordering: true,      
+            info: true,          
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json" 
+            },
+            columnDefs: [
+                { targets: [0, 1], visible: false } 
+            ]
+        });
+        
+        
+        $.ajax({
+            url: '@Url.Action("Insertar", "Empleado")',
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (data) {
+                $('#contenedorNuevo').html(data);
+            },
+            error: function (xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error en la solicitud: ' + error,
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+
+
+    });
+
+    function editarRegistro(empleado) {
+        $.ajax({
+            url: '@Url.Action("Editar", "Empleado")',
+            type: 'GET',
+            contentType: 'application/json',
+            data: { Empleado: empleado },
+            success: function (data) {
+
+                $('#contenedorEditar').html(data);
+                $('#modalEditar').modal('show');
+            },
+            error: function (xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error en la solicitud: ' + error,
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+
+    }
+
+    function eliminarRegistro(empleado) {
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Alerta!',
+            text: 'Seguro que desea eliminar el empleado ' + empleado + '?',
+            showCancelButton: true,
+            cancelButtonText: "Cancelar",
+            confirmButtonText: "Guardar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var registro = {
+                    Empleado: empleado
+                };
+
+                $.ajax({
+                    url: '@Url.Action("Eliminar", "Empleado")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(registro),
+                    success: function (data) {
+
+                        if (data == 1) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Éxito',
+                                text: 'Registro eliminado correctamente',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+
+                                location.reload();
+                            });
+
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Error al eliminar el registro',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error en la solicitud: ' + error,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            }
+
+
+        });
+
+    }
+
+</script>

@@ -58,9 +58,6 @@ BEGIN
 			-- Realizamos el INNER JOIN para obtener el idPuesto correcto
 			INNER JOIN Puesto P ON TempEmpleado.Puesto = P.Nombre;
 
-
-			-- FALTA EL UPDATE
-
 			-- Cargado de tabla TipoMovimiento
 			INSERT INTO [dbo].[TipoMovimiento] ([Nombre], [TipoAccion])
 			SELECT *

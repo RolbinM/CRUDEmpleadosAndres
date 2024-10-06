@@ -1,0 +1,118 @@
+﻿<!-- Modal Nuevo Empleado Cuenta -->
+<div class="modal fade" id="modalNuevo" tabindex="-1" aria-labelledby="modalNuevoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="modalNuevoLabel">Empleado nuevo</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formNuevo">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="cedula" class="col-form-label">Valor Documento Identidad:</label>
+                        <input type="int" class="form-control" id="cedula" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombre" class="col-form-label">Nombre:</label>
+                        <input type="text" class="form-control" id="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="puesto" class="col-form-label">Puesto:</label>
+                        <select class="form-control" id="puesto" name="puesto" required>
+                            <option value="">Seleccione un puesto</option>
+                            @foreach (var puesto in ViewBag.Puestos)
+                            {
+                                <option value="@puesto.Nombre">@puesto.Nombre - Salario Por Hora: @puesto.SalarioxHora</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fechaContratacion" class="col-form-label">Fecha Contratación:</label>
+                        <input type="date" class="form-control" id="fechaContratacion" required>
+                    </div>
+                   
+                </div>
+                <div class="modal-footer">
+                    <button id="btnNuevaCuenta" type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $('#btnModalNuevo').on('click', function () {
+            $('#cedula').val('');
+            $('#nombre').val('');
+            $('#puesto').val('');
+            $('#fechaContratacion').val('');
+
+            $('#modalNuevo').modal('show');
+        });
+
+        $('#formNuevo').on('submit', function (e) {
+            e.preventDefault();
+
+            var cedula = $('#cedula').val();
+            var nombre = $('#nombre').val();
+            var puesto = $('#puesto').val();
+            var fechaContratacion = $('#fechaContratacion').val();
+
+            var registro = {
+                ValorDocumentoIdentidad: cedula,
+                Nombre: nombre,
+                NombrePuesto: puesto,
+                FechaContratacion: fechaContratacion
+            };
+
+            $.ajax({
+                url: '@Url.Action("Insertar", "Empleado")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(registro),
+                success: function (data) {
+                    if (data == 1) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: 'Registro insertado correctamente',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            $('#modalNuevo').modal('hide');
+                            location.reload();
+                        });
+                    }
+
+                    if (data == 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Advertencia',
+                            text: 'No se puede insertar un registro con el mismo nombre',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+
+                    if (data < 0) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al insertar el registro',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error en la solicitud: ' + error,
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        });
+
+    });
+</script>
