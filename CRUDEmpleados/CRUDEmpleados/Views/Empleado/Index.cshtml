@@ -18,10 +18,12 @@
                 <th>Documento de Identidad</th>
                 <th>Nombre</th>
                 <th>Puesto</th>
+                <th>Salario Por Hora</th>
                 <th>Fecha de Contratación</th>
                 <th>Saldo de Vacaciones</th>
                 <th>Es Activo</th>
-                <th>Acciones</th>
+                <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -33,12 +35,15 @@
                     <td>@empleado.ValorDocumentoIdentidad</td>
                     <td>@empleado.Nombre</td>
                     <td>@empleado.NombrePuesto</td>
+                    <td>@empleado.SalarioxHora</td>
                     <td>@empleado.FechaContratacion.ToString("dd/MM/yyyy")</td>
                     <td>@empleado.SaldoVacaciones</td>
                     <td>@(empleado.EsActivo ? "Sí" : "No")</td>
                     <td>
-                        <a onclick="editarRegistro('@empleado.Id')" class="btn btn-warning">Editar</a>
-                        <a onclick="eliminarRegistro('@empleado.Id')" class="btn btn-danger">Eliminar</a>
+                        <a onclick="editarRegistro('@empleado.ValorDocumentoIdentidad')" class="btn btn-warning"><i class="fa-solid fa-pen-to-square"></i></a>
+                    </td>
+                    <td>
+                        <a onclick="eliminarRegistro('@empleado.ValorDocumentoIdentidad')" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></a>
                     </td>
 
                 </tr>
@@ -58,8 +63,7 @@
 
         $('#empleadosTable').DataTable({
             paging: true,        
-            searching: true,    
-            ordering: true,      
+            searching: true,       
             info: true,          
             language: {
                 url: "//cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json" 
@@ -125,7 +129,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 var registro = {
-                    Empleado: empleado
+                    ValorDocumentoIdentidad: empleado
                 };
 
                 $.ajax({
@@ -135,7 +139,7 @@
                     data: JSON.stringify(registro),
                     success: function (data) {
 
-                        if (data == 1) {
+                        if (data == 0) {
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Éxito',

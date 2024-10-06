@@ -1,5 +1,149 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model CapaObjetos.Objetos.clEmpleado
+
 @{
+    Layout = null;
 }
+
+<!-- Modal Editar Cuenta -->
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalNuevoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="modalNuevoLabel">Editar cuenta</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditar">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="cedulaOriginalEditar" class="col-form-label">Valor Documento Identidad:</label>
+                        <input type="number" class="form-control" id="cedulaOriginalEditar" required readonly value="@Model.ValorDocumentoIdentidad">
+                    </div>
+                    <div class="mb-3">
+                        <label for="cedulaEditar" class="col-form-label">Valor Documento Identidad Nuevo:</label>
+                        <input type="number" class="form-control" id="cedulaEditar" required value="@Model.ValorDocumentoIdentidad">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombreEditar" class="col-form-label">Nombre:</label>
+                        <input type="text" class="form-control" id="nombreEditar" required value="@Model.Nombre">
+                    </div>
+                    <div class="mb-3">
+                        <label for="puestoEditar" class="col-form-label">Puesto:</label>
+                        <select class="form-control" id="puestoEditar" name="puesto" required >
+                            <option value="">Seleccione un puesto</option>
+                            @foreach (var puesto in ViewBag.Puestos)
+                            {
+                                <option value="@puesto.Nombre">@puesto.Nombre - Salario Por Hora: @puesto.SalarioxHora</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="vacacionesEditar" class="col-form-label">Saldo Vacaciones Disponibles:</label>
+                        <input type="text" class="form-control" id="vacacionesEditar" required readonly value="@Model.SaldoVacaciones">
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button id="btnNuevaCuenta" type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        var nombrePuesto = "@Model.NombrePuesto";
+        $('#puestoEditar').val(nombrePuesto);
+    });
+
+    $('#formEditar').on('submit', function (e) {
+        e.preventDefault();
+
+        var cedulaOriginal = $('#cedulaOriginalEditar').val();
+        var cedula = $('#cedulaEditar').val();
+        var nombre = $('#nombreEditar').val();
+        var puesto = $('#puestoEditar').val();
+
+        var registro = {
+            ValorDocumentoIdentidadOriginal: cedulaOriginal,
+            ValorDocumentoIdentidad: cedula,
+            Nombre: nombre,
+            NombrePuesto: puesto
+        };
+
+        console.log(registro);
+
+        $.ajax({
+            url: '@Url.Action("Editar", "Empleado")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(registro),
+            success: function (data) {
+                if (data == 0) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: 'Registro actualizado correctamente',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        $('#modalEditar').modal('hide');
+                        location.reload();
+                    });
+                }
+
+                if (data == 50002) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: 'No se encontró el empleado ingresado',
+                        confirmButtonText: 'OK'
+                    });
+                }
+
+                if (data == 50006) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: 'Cédula de identidad ya existe',
+                        confirmButtonText: 'OK'
+                    });
+                }
+
+                if (data == 50007) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: 'Nombre ingresado ya existe',
+                        confirmButtonText: 'OK'
+                    });
+                }
+
+                if (data == 500051) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: 'No se encontró el puesto ingresado',
+                        confirmButtonText: 'OK'
+                    });
+                }
+
+                if (data < 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al actualizar el registro',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error en la solicitud: ' + error,
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    });
+</script>

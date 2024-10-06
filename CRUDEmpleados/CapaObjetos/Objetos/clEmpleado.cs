@@ -6,6 +6,7 @@
         public int IdPuesto { get; set; }
         public string NombrePuesto { get; set; }
         public decimal SalarioxHora { get; set; }
+        public string ValorDocumentoIdentidadOriginal { get; set; }
         public string ValorDocumentoIdentidad { get; set; }
         public string Nombre { get; set; }
         public DateTime FechaContratacion { get; set; }

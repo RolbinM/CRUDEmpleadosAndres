@@ -15,8 +15,6 @@ namespace CRUDEmpleados.Controllers
 
         public async Task<IActionResult> Index()
         {
-            string usuario = User.Identity.Name;
-
             List<clEmpleado> lista = dbEmpleado.obtenerEmpleados(conexionString);
 
             return View(lista);
@@ -25,7 +23,6 @@ namespace CRUDEmpleados.Controllers
         [HttpGet]
         public IActionResult Insertar()
         {
-            // Ejemplo de una lista de puestos
             List<clPuesto> puestos = dbPuesto.obtenerPuesto(conexionString);
 
             ViewBag.Puestos = puestos;
@@ -40,11 +37,9 @@ namespace CRUDEmpleados.Controllers
 
             try
             {
-                string usuario = User.Identity.Name;
+                resultCode = dbEmpleado.insertarEmpleado(conexionString, inEmpleado);
 
-                
-
-                return 1;
+                return resultCode;
             }
             catch (Exception ex)
             {
@@ -52,50 +47,73 @@ namespace CRUDEmpleados.Controllers
             }
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> Editar(string inEmpleado)
-        //{
-        //    string usuario = User.Identity.Name;
+        [HttpGet]
+        public async Task<IActionResult> Editar(string Empleado)
+        {
+            try
+            {
+                List<clPuesto> puestos = dbPuesto.obtenerPuesto(conexionString);
 
-        //    //cl cuenta = await personalHubDBContext.Cuenta.FirstAsync(e => (e.Usuario == usuario && e.Cuenta == inCuenta));
+                ViewBag.Puestos = puestos;
 
-        //    return View(cuenta);
-        //}
+                clEmpleado empleado = dbEmpleado.obtenerEmpleado(conexionString, Empleado);
+                return View(empleado);
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
+            }
+        }
 
-        //[HttpPost]
-        //public async Task<int> Editar([FromBody] clEmpleado inEmpleado)
-        //{
-        //    try
-        //    {
-        //        string usuario = User.Identity.Name;
-        //        cuenta.UpdatedDate = DateTime.Now;
+        [HttpPost]
+        public async Task<int> Editar([FromBody] clEmpleado inEmpleado)
+        {
+            int resultCode = -1;
 
+            try
+            {
+                clEmpleado empleado = dbEmpleado.obtenerEmpleado(conexionString, inEmpleado.ValorDocumentoIdentidadOriginal);
 
-        //        return 1;
+                if (empleado.ValorDocumentoIdentidad == inEmpleado.ValorDocumentoIdentidad)
+                {
+                    inEmpleado.ValorDocumentoIdentidad = null;
+                }
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return -1;
-        //    }
-        //}
+                if (empleado.Nombre == inEmpleado.Nombre)
+                {
+                    inEmpleado.Nombre = null;
+                }
 
-        //[HttpPost]
-        //public async Task<int> Eliminar([FromBody] clEmpleado inEmpleado)
-        //{
-        //    try
-        //    {
-        //        string usuario = User.Identity.Name;
+                if (empleado.NombrePuesto == inEmpleado.NombrePuesto)
+                {
+                    inEmpleado.NombrePuesto = null;
+                }
 
+                resultCode = dbEmpleado.editarEmpleado(conexionString, inEmpleado);
 
+                return resultCode;
+            }
+            catch (Exception ex)
+            {
+                return -1;
+            }
+        }
 
-        //        return 1;
+        [HttpPost]
+        public async Task<int> Eliminar([FromBody] clEmpleado inEmpleado)
+        {
+            int resultCode = -1;
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return -1;
-        //    }
-        //}
+            try
+            {
+                resultCode = dbEmpleado.eliminarEmpleado(conexionString, inEmpleado);
+
+                return resultCode;
+            }
+            catch (Exception ex)
+            {
+                return -1;
+            }
+        }
     }
 }

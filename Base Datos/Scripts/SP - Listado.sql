@@ -28,7 +28,9 @@ BEGIN
 		  on p.id = emp.idPuesto
 		  WHERE 
             (@inValorDocIdentidad IS NULL OR emp.ValorDocumentoIdentidad = @inValorDocIdentidad)
-            AND (@inNombre IS NULL OR emp.Nombre LIKE '%' + @inNombre + '%');
+            AND (@inNombre IS NULL OR emp.Nombre LIKE '%' + @inNombre + '%')
+			AND EsActivo = 1
+		  ORDER BY p.Nombre DESC
 
 
 		SELECT @outResultCode AS outResultCode;

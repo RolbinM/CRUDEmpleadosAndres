@@ -143,6 +143,7 @@ END
 
 --Procedimiento almacenado Update Employee
 DROP PROCEDURE SP_Update_Employee
+
 CREATE PROCEDURE SP_Update_Employee
 (
     @cedula NVARCHAR(50) = NULL, -- Opcional, si no se pasa se mantiene el valor actual
@@ -207,6 +208,7 @@ BEGIN
 
             -- Si la actualización fue exitosa, retornamos éxito
             SET @outResultCode = 0; -- Éxito
+			SELECT @outResultCode AS outResultCode;
 			COMMIT TRANSACTION update_employee;
         END
         

@@ -11,6 +11,11 @@ namespace CapaDatos.Data
 {
     public class dbEmpleado
     {
+        object ConvertToDBNull(string value)
+        {
+            return string.IsNullOrEmpty(value) ? DBNull.Value : value;
+        }
+
         public List<clEmpleado> obtenerEmpleados(SqlConnectionStringBuilder connectionString)
         {
             List<clEmpleado> lista = new List<clEmpleado>();
@@ -51,8 +56,39 @@ namespace CapaDatos.Data
             return lista;
         }
 
+        public clEmpleado obtenerEmpleado(SqlConnectionStringBuilder connectionString, string inEmpleado)
+        {
+            clEmpleado emp = new clEmpleado();
 
-        public int insertarEmpleado(SqlConnectionStringBuilder connectionString, string cedula, string nombre, string nombrePuesto, DateTime fechaContratacion)
+            string command = "dbo.SP_Get_Employee";
+
+            using (SqlConnection conn = new SqlConnection(connectionString.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand comando = new SqlCommand(command, conn))
+                {
+                    comando.CommandType = System.Data.CommandType.StoredProcedure;
+                    comando.Parameters.AddWithValue("@cedula", inEmpleado);
+                    comando.Parameters.AddWithValue("@outResultCode", 0);
+                    SqlDataReader reader = comando.ExecuteReader();
+
+
+                    while (reader.Read())
+                    {
+                        emp.ValorDocumentoIdentidad = reader.GetString(0);
+                        emp.Nombre = reader.GetString(1);
+                        emp.NombrePuesto = reader.GetString(2);
+                        emp.SaldoVacaciones = reader.GetDecimal(3);
+
+                    }
+                }
+                conn.Close();
+            }
+            return emp;
+        }
+
+
+        public int insertarEmpleado(SqlConnectionStringBuilder connectionString, clEmpleado inEmpleado)
         {
             int resultCode = -1;
 
@@ -64,10 +100,69 @@ namespace CapaDatos.Data
                 using (SqlCommand comando = new SqlCommand(command, conn))
                 {
                     comando.CommandType = System.Data.CommandType.StoredProcedure;
-                    comando.Parameters.AddWithValue("@cedula", cedula);
-                    comando.Parameters.AddWithValue("@name", nombre);
-                    comando.Parameters.AddWithValue("@nombrePuesto", nombrePuesto);
-                    comando.Parameters.AddWithValue("@fechaContratacion", fechaContratacion);
+                    comando.Parameters.AddWithValue("@cedula", inEmpleado.ValorDocumentoIdentidad);
+                    comando.Parameters.AddWithValue("@name", inEmpleado.Nombre);
+                    comando.Parameters.AddWithValue("@nombrePuesto", inEmpleado.NombrePuesto);
+                    comando.Parameters.AddWithValue("@fechaContratacion", inEmpleado.FechaContratacion);
+                    comando.Parameters.AddWithValue("@outResultCode", 0);
+                    SqlDataReader reader = comando.ExecuteReader();
+
+
+                    while (reader.Read())
+                    {
+                        resultCode = reader.GetInt32(0);
+                    }
+                }
+                conn.Close();
+            }
+            return resultCode;
+        }
+
+
+        public int editarEmpleado(SqlConnectionStringBuilder connectionString, clEmpleado inEmpleado)
+        {
+            int resultCode = -1;
+
+            string command = "dbo.SP_Update_Employee";
+
+            using (SqlConnection conn = new SqlConnection(connectionString.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand comando = new SqlCommand(command, conn))
+                {
+                    comando.CommandType = System.Data.CommandType.StoredProcedure;
+                    comando.Parameters.AddWithValue("@cedula", inEmpleado.ValorDocumentoIdentidadOriginal);
+                    comando.Parameters.AddWithValue("@cedula_updated", ConvertToDBNull(inEmpleado.ValorDocumentoIdentidad));
+                    comando.Parameters.AddWithValue("@name_updated", ConvertToDBNull(inEmpleado.Nombre));
+                    comando.Parameters.AddWithValue("@nombrePuesto_updated", ConvertToDBNull(inEmpleado.NombrePuesto));
+                    comando.Parameters.AddWithValue("@outResultCode", 0);
+                    SqlDataReader reader = comando.ExecuteReader();
+
+
+                    while (reader.Read())
+                    {
+                        resultCode = reader.GetInt32(0);
+                    }
+                }
+                conn.Close();
+            }
+            return resultCode;
+        }
+
+
+        public int eliminarEmpleado(SqlConnectionStringBuilder connectionString, clEmpleado inEmpleado)
+        {
+            int resultCode = -1;
+
+            string command = "dbo.SP_Delete_Employee";
+
+            using (SqlConnection conn = new SqlConnection(connectionString.ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand comando = new SqlCommand(command, conn))
+                {
+                    comando.CommandType = System.Data.CommandType.StoredProcedure;
+                    comando.Parameters.AddWithValue("@cedulaDeleted", inEmpleado.ValorDocumentoIdentidad);
                     comando.Parameters.AddWithValue("@outResultCode", 0);
                     SqlDataReader reader = comando.ExecuteReader();
 
