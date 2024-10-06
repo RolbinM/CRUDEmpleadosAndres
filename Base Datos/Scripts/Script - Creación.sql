@@ -53,6 +53,13 @@ CREATE TABLE Usuario (
     , Username NVARCHAR(50) NOT NULL
     , [Password] NVARCHAR(50) NOT NULL
 );
+ALTER TABLE Usuario
+ADD 
+	userBlocked BIT DEFAULT 0,
+    failedAttempts INT NOT NULL DEFAULT 0, -- La cantidad de intentos fallidos comienza en 0
+	lastTimeLogin DATETIME NULL; -- La cantidad de intentos fallidos comienza en 0
+
+
 
 
 CREATE TABLE Movimiento (
