@@ -23,13 +23,39 @@ namespace CRUDEmpleados.Controllers
 
 
         [HttpGet]
-        public IActionResult Insertar()
+        public IActionResult Insertar(string Empleado)
         {
-            List<clPuesto> puestos = dbPuesto.obtenerPuesto(conexionString);
+            clEmpleado emp = dbEmpleado.obtenerEmpleado(conexionString, Empleado);
 
-            ViewBag.Puestos = puestos;
+            List<clTipoMovimiento> tiposMovimientos = dbMovimiento.obtenerTiposMovimientos(conexionString);
+
+            ViewBag.Empleado = emp;
+            ViewBag.tiposMovimientos = tiposMovimientos; ;
 
             return View();
+        }
+
+        [HttpPost]
+        public async Task<int> Insertar([FromBody] clMovimiento inMovimiento)
+        {
+            int resultCode = -1;
+
+            try
+            {
+                string usuario = User.Identity.Name;
+                string ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+                inMovimiento.Usuario = User.Identity.Name;
+                inMovimiento.PostInIp = ip;
+
+                resultCode = dbMovimiento.insertarMovimiento(conexionString, inMovimiento);
+
+                return resultCode;
+            }
+            catch (Exception ex)
+            {
+                return -1;
+            }
         }
     }
 }

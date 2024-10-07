@@ -69,11 +69,13 @@
             ]
         });
 
+        var empleado = '@ViewBag.Empleado';
 
         $.ajax({
             url: '@Url.Action("Insertar", "Movimiento")',
             type: 'GET',
             contentType: 'application/json',
+            data: { Empleado: empleado },
             success: function (data) {
                 $('#contenedorNuevo').html(data);
             },
